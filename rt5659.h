@@ -1644,6 +1644,11 @@
 #define RT5659_GP1_PF_MASK			(0x1 << 2)
 #define RT5659_GP1_PF_SFT			2
 
+/* GPIO Control 3 (0x00c2) */
+#define RT5659_I2S2_PIN_MASK			(0x1 << 15)
+#define RT5659_I2S2_PIN_SFT			15
+#define RT5659_I2S2_PIN_I2S			(0x0 << 15)
+#define RT5659_I2S2_PIN_GPIO			(0x1 << 15)
 
 /* Soft volume and zero cross control 1 (0x00d9) */
 #define RT5659_SV_MASK				(0x1 << 15)
