@@ -34,6 +34,10 @@ struct rt5659_platform_data {
 
 	enum rt5659_dmic1_data_pin dmic1_data_pin;
 	enum rt5659_dmic2_data_pin dmic2_data_pin;
+
+	const char *regulator_1v8;
+	const char *regulator_3v3;
+	const char *regulator_5v;
 };
 
 #endif

@@ -19,6 +19,7 @@
 #include <linux/platform_device.h>
 #include <linux/spi/spi.h>
 #include <linux/acpi.h>
+#include <linux/regulator/consumer.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
@@ -4793,6 +4794,13 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 	of_property_read_u32(np, "realtek,dmic2_data_pin",
 		&rt5659->pdata.dmic2_data_pin);
 
+	of_property_read_string(np, "realtek,regulator_1v8",
+		&rt5659->pdata.regulator_1v8);
+	of_property_read_string(np, "realtek,regulator_3v3",
+		&rt5659->pdata.regulator_3v3);
+	of_property_read_string(np, "realtek,regulator_5v",
+		&rt5659->pdata.regulator_5v);
+
 	return 0;
 }
 
@@ -5081,6 +5089,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	struct rt5659_priv *rt5659;
 	int ret;
 	unsigned int val;
+	struct regulator *regulator_1v8, *regulator_3v3, *regulator_5v;
 
 	pr_info("Codec driver version %s\n", VERSION);
 
@@ -5106,6 +5115,26 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 			}
 		}
 	}
+
+	regulator_1v8 = regulator_get(NULL, rt5659->pdata.regulator_1v8);
+	if (IS_ERR(regulator_1v8))
+		pr_err("codec: couldn't get regulator_1v8\n");
+	else if (regulator_enable(regulator_1v8))
+		pr_err("codec: couldn't enable regulator_1v8\n");
+
+	regulator_3v3 = regulator_get(NULL, rt5659->pdata.regulator_3v3);
+	if (IS_ERR(regulator_3v3))
+		pr_err("codec: couldn't get regulator_3v3\n");
+	else if (regulator_enable(regulator_3v3))
+		pr_err("codec: couldn't enable regulator_3v3\n");
+
+	regulator_5v = regulator_get(NULL, rt5659->pdata.regulator_5v);
+	if (IS_ERR(regulator_5v))
+		pr_err("codec: couldn't get regulator_5v\n");
+	else if (regulator_enable(regulator_5v))
+		pr_err("codec: couldn't enable regulator_5v\n");
+
+	msleep(300);
 
 	rt5659->regmap = devm_regmap_init_i2c(i2c, &rt5659_regmap);
 	if (IS_ERR(rt5659->regmap)) {
