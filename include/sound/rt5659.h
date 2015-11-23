@@ -38,6 +38,9 @@ struct rt5659_platform_data {
 	const char *regulator_1v8;
 	const char *regulator_3v3;
 	const char *regulator_5v;
+
+	int gpio_ldo;
+	int gpio_reset;
 };
 
 #endif

@@ -20,6 +20,8 @@
 #include <linux/spi/spi.h>
 #include <linux/acpi.h>
 #include <linux/regulator/consumer.h>
+#include <linux/gpio.h>
+#include <linux/of_gpio.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
@@ -4801,6 +4803,10 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 	of_property_read_string(np, "realtek,regulator_5v",
 		&rt5659->pdata.regulator_5v);
 
+	rt5659->pdata.gpio_ldo = of_get_named_gpio(np, "realtek,gpio_ldo", 0);
+	rt5659->pdata.gpio_reset = of_get_named_gpio(np, "realtek,gpio_reset",
+		0);
+
 	return 0;
 }
 
@@ -5118,21 +5124,35 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 
 	regulator_1v8 = regulator_get(NULL, rt5659->pdata.regulator_1v8);
 	if (IS_ERR(regulator_1v8))
-		pr_err("codec: couldn't get regulator_1v8\n");
+		dev_err(&i2c->dev, "Fail to get regulator_1v8\n");
 	else if (regulator_enable(regulator_1v8))
-		pr_err("codec: couldn't enable regulator_1v8\n");
+		dev_err(&i2c->dev, "Fail to enable regulator_1v8\n");
 
 	regulator_3v3 = regulator_get(NULL, rt5659->pdata.regulator_3v3);
 	if (IS_ERR(regulator_3v3))
-		pr_err("codec: couldn't get regulator_3v3\n");
+		dev_err(&i2c->dev, "Fail to get regulator_3v3\n");
 	else if (regulator_enable(regulator_3v3))
-		pr_err("codec: couldn't enable regulator_3v3\n");
+		dev_err(&i2c->dev, "Fail to enable regulator_3v3\n");
 
 	regulator_5v = regulator_get(NULL, rt5659->pdata.regulator_5v);
 	if (IS_ERR(regulator_5v))
-		pr_err("codec: couldn't get regulator_5v\n");
+		dev_err(&i2c->dev, "Fail to get regulator_5v\n");
 	else if (regulator_enable(regulator_5v))
-		pr_err("codec: couldn't enable regulator_5v\n");
+		dev_err(&i2c->dev, "Fail to enable regulator_5v\n");
+
+	if (gpio_is_valid(rt5659->pdata.gpio_ldo)) {
+		if (gpio_request(rt5659->pdata.gpio_ldo, "rt5659"))
+			dev_err(&i2c->dev, "Fail gpio_request gpio_ldo\n");
+		else if (gpio_direction_output(rt5659->pdata.gpio_ldo, 1))
+			dev_err(&i2c->dev, "Fail gpio_direction gpio_ldo\n");
+	}
+
+	if (gpio_is_valid(rt5659->pdata.gpio_reset)) {
+		if (gpio_request(rt5659->pdata.gpio_reset, "rt5659"))
+			dev_err(&i2c->dev, "Fail gpio_request gpio_reset\n");
+		else if (gpio_direction_output(rt5659->pdata.gpio_reset, 1))
+			dev_err(&i2c->dev, "Fail gpio_direction gpio_reset\n");
+	}
 
 	msleep(300);
 
