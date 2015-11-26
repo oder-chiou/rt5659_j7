@@ -45,17 +45,12 @@ module_param(adc_power_delay, int, 0644);
 static struct reg_default init_list[] = {
 	{RT5659_MONO_NG2_CTRL_2, 	0x003a},
 	{RT5659_ASRC_8, 		0x0120},
-	/*DMIC1_SDA from GPIO5*/
-	{RT5659_DMIC_CTRL_1,		0x24a8},
-	{RT5659_GPIO_CTRL_1,		0x4800},
-	/* Headset mic (IN1) */
-	{RT5659_IN1_IN2,		0x4000}, /*Set BST1 to 36dB*/
-	/* Jack detect (JD3 to IRQ)*/
-	{RT5659_RC_CLK_CTRL,		0x9000},
-	{RT5659_GPIO_CTRL_1,		0xc800}, /*set GPIO1 to IRQ*/
-	{RT5659_PWR_ANLG_2,		0x0001}, /*JD3 power on */
-	{RT5659_IRQ_CTRL_2,		0x0040}, /*JD3 detection*/
-	{RT5659_EJD_CTRL_1,		0xa880},
+	/* Jack detect (GPIO JD2 to IRQ) */
+	{RT5659_RC_CLK_CTRL,		0x0100},
+	{RT5659_JD_CTRL_2,		0x0600},
+	{RT5659_IRQ_CTRL_1,		0x0008},
+	{RT5659_GPIO_CTRL_1,		0x8000}, /*set GPIO1 to IRQ*/
+	{RT5659_EJD_CTRL_1,		0x70c0},
 };
 #define RT5659_INIT_REG_LEN ARRAY_SIZE(init_list)
 
@@ -1491,7 +1486,7 @@ int rt5659_check_jd_status(struct snd_soc_codec *codec)
 {
 	int val;
 
-	val = snd_soc_read(codec, RT5659_INT_ST_1) & 0x0080;
+	val = snd_soc_read(codec, RT5659_INT_ST_1) & 0x0800;
 
 	if (!val) {  /* Jack insert */
 		pr_debug("%s-Jack In\n", __func__);
