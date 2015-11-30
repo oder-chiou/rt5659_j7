@@ -34,6 +34,7 @@
 
 #include "rt5659.h"
 
+static struct regmap *global_regmap;
 /* Delay(ms) after powering on DMIC for avoiding pop */
 static int dmic_power_delay = 450;
 module_param(dmic_power_delay, int, 0644);
@@ -4551,6 +4552,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 			enum snd_soc_bias_level level)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	unsigned int value;
 
 	pr_debug("%s: level = %d\n", __func__, level);
 
@@ -4576,9 +4578,12 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 
 	case SND_SOC_BIAS_OFF:
 		regmap_update_bits(rt5659->regmap, RT5659_PWR_DIG_1, RT5659_PWR_LDO, 0);
-		regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
-			RT5659_PWR_VREF1 | RT5659_PWR_VREF2 | RT5659_PWR_FV1 |
-			RT5659_PWR_FV2, RT5659_PWR_MB | RT5659_PWR_VREF2);
+		regmap_read(rt5659->regmap, RT5659_PWR_ANLG_2, &value);
+		if (!(value & RT5659_PWR_MB1)) {
+			regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
+				RT5659_PWR_VREF1 | RT5659_PWR_VREF2 | RT5659_PWR_FV1 |
+				RT5659_PWR_FV2, 0);
+		}
 		regmap_update_bits(rt5659->regmap, RT5659_DIG_MISC,
 			RT5659_DIG_GATE_CTRL, 0);
 		break;
@@ -4590,6 +4595,28 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 
 	return 0;
 }
+
+void rt5659_micbias1_output(int on)
+{
+	unsigned int value;
+
+	if (on) {
+		regmap_write(global_regmap, RT5659_PWR_ANLG_1,
+			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2,
+			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2);
+		regmap_write(global_regmap, RT5659_PWR_ANLG_2,
+			RT5659_PWR_MB1, RT5659_PWR_MB1);
+	} else {
+		regmap_write(global_regmap, RT5659_PWR_ANLG_2,
+			RT5659_PWR_MB1, 0);
+		regmap_read(rt5659->regmap, RT5659_PWR_DIG_1, &value);
+		if (!(value & RT5659_PWR_LDO)) {
+			regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
+				RT5659_PWR_VREF1 | RT5659_PWR_VREF2 | RT5659_PWR_FV1 |
+				RT5659_PWR_FV2, 0);
+		}
+}
+EXPORT_SYMBOL(rt5659_micbias1_output);
 
 static int rt5659_reg_init(struct snd_soc_codec *codec)
 {
@@ -5167,6 +5194,8 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	}
 
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
+
+	global_regmap = rt5659->regmap;
 
 	rt5659_calibrate(rt5659);
 
