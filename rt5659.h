@@ -1797,6 +1797,6 @@ int rt5659_headset_detect(struct snd_soc_codec *codec, int jack_insert);
 int rt5659_button_detect(struct snd_soc_codec *codec);
 int rt5659_check_jd_status(struct snd_soc_codec *codec);
 
-void rt5659_micbias1_output(struct snd_soc_codec *codec, int on);
+void rt5659_micbias1_output(int on);
 
 #endif /* __RT5659_H__ */

@@ -4601,20 +4601,21 @@ void rt5659_micbias1_output(int on)
 	unsigned int value;
 
 	if (on) {
-		regmap_write(global_regmap, RT5659_PWR_ANLG_1,
+		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_1,
 			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2,
 			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2);
-		regmap_write(global_regmap, RT5659_PWR_ANLG_2,
+		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
 			RT5659_PWR_MB1, RT5659_PWR_MB1);
 	} else {
-		regmap_write(global_regmap, RT5659_PWR_ANLG_2,
+		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
 			RT5659_PWR_MB1, 0);
-		regmap_read(rt5659->regmap, RT5659_PWR_DIG_1, &value);
+		regmap_read(global_regmap, RT5659_PWR_DIG_1, &value);
 		if (!(value & RT5659_PWR_LDO)) {
-			regmap_update_bits(rt5659->regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
+			regmap_update_bits(global_regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
 				RT5659_PWR_VREF1 | RT5659_PWR_VREF2 | RT5659_PWR_FV1 |
 				RT5659_PWR_FV2, 0);
 		}
+	}
 }
 EXPORT_SYMBOL(rt5659_micbias1_output);
 
