@@ -1165,6 +1165,7 @@ static const DECLARE_TLV_DB_SCALE(in_vol_tlv, -3450, 150, 0);
 static const DECLARE_TLV_DB_SCALE(adc_vol_tlv, -17625, 375, 0);
 static const DECLARE_TLV_DB_SCALE(adc_bst_tlv, 0, 1200, 0);
 static const DECLARE_TLV_DB_SCALE(in_bst_tlv, -1200, 75, 0);
+static const DECLARE_TLV_DB_SCALE(dac_mixer_vol_tlv, -6000, 6000, 0);
 
 /* Interface data select */
 static const char * const rt5659_data_select[] = {
@@ -1738,6 +1739,43 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 	SOC_DOUBLE_TLV("STO2 ADC Boost Gain Volume", RT5659_STO2_BOOST,
 		RT5659_STO2_ADC_L_BST_SFT, RT5659_STO2_ADC_R_BST_SFT,
 		3, 0, adc_bst_tlv),
+
+	/* DAC Mixer Volume Control */
+	SOC_SINGLE_TLV("Stereo DAC MIXL DAC L1 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_L1_STO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Stereo DAC MIXL DAC R1 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_R1_STO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Stereo DAC MIXL DAC L2 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_L2_STO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Stereo DAC MIXL DAC R2 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_R2_STO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+
+	SOC_SINGLE_TLV("Stereo DAC MIXR DAC L1 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_L1_STO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Stereo DAC MIXR DAC R1 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_R1_STO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Stereo DAC MIXR DAC L2 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_L2_STO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Stereo DAC MIXR DAC R2 Volume", RT5659_STO_DAC_MIXER,
+		RT5659_G_DAC_R2_STO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+
+	SOC_SINGLE_TLV("Mono DAC MIXL DAC L1 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_L1_MONO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Mono DAC MIXL DAC R1 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_R1_MONO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Mono DAC MIXL DAC L2 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_L2_MONO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Mono DAC MIXL DAC R2 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_R2_MONO_L_SFT, 1, 1, dac_mixer_vol_tlv),
+
+	SOC_SINGLE_TLV("Mono DAC MIXR DAC L1 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_L1_MONO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Mono DAC MIXR DAC R1 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_R1_MONO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Mono DAC MIXR DAC L2 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_L2_MONO_R_SFT, 1, 1, dac_mixer_vol_tlv),
+	SOC_SINGLE_TLV("Mono DAC MIXR DAC R2 Volume", RT5659_MONO_DAC_MIXER,
+		RT5659_G_DAC_R2_MONO_R_SFT, 1, 1, dac_mixer_vol_tlv),
 
 	SOC_ENUM("ADC IF1 0/1 Data Switch", rt5659_if1_01_adc_enum),
 	SOC_ENUM("ADC IF1 2/3 Data Switch", rt5659_if1_23_adc_enum),
