@@ -1751,6 +1751,7 @@ enum {
 
 struct rt5659_pll_code {
 	bool m_bp;
+	bool k_bp;
 	int m_code;
 	int n_code;
 	int k_code;
