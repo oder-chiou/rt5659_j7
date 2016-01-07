@@ -4640,7 +4640,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 	return 0;
 }
 
-void rt5659_micbias1_output(int on)
+void rt5659_micbias_output(int micbias, int on)
 {
 	unsigned int value;
 
@@ -4648,11 +4648,31 @@ void rt5659_micbias1_output(int on)
 		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_1,
 			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2,
 			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2);
-		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
-			RT5659_PWR_MB1, RT5659_PWR_MB1);
+
+		switch (micbias) {
+		case RT5659_MICBIAS2:
+			regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
+				RT5659_PWR_MB2, RT5659_PWR_MB2);
+			break;
+		case RT5659_MICBIAS1:
+		default:
+			regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
+				RT5659_PWR_MB1, RT5659_PWR_MB1);
+			break;
+		}
 	} else {
-		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
-			RT5659_PWR_MB1, 0);
+		switch (micbias) {
+		case RT5659_MICBIAS2:
+			regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
+				RT5659_PWR_MB2, 0);
+			break;
+		case RT5659_MICBIAS1:
+		default:
+			regmap_update_bits(global_regmap, RT5659_PWR_ANLG_2,
+				RT5659_PWR_MB1, 0);
+			break;
+		}
+
 		regmap_read(global_regmap, RT5659_PWR_DIG_1, &value);
 		if (!(value & RT5659_PWR_LDO)) {
 			regmap_update_bits(global_regmap, RT5659_PWR_ANLG_1, RT5659_PWR_MB |
@@ -4661,7 +4681,7 @@ void rt5659_micbias1_output(int on)
 		}
 	}
 }
-EXPORT_SYMBOL(rt5659_micbias1_output);
+EXPORT_SYMBOL(rt5659_micbias_output);
 
 static int rt5659_reg_init(struct snd_soc_codec *codec)
 {
