@@ -5365,6 +5365,18 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 
 static int rt5659_i2c_remove(struct i2c_client *i2c)
 {
+	struct rt5659_priv *rt5659 = i2c_get_clientdata(i2c);
+
+	if (gpio_is_valid(rt5659->pdata.gpio_ldo)) {
+		gpio_direction_output(rt5659->pdata.gpio_ldo, 0);
+		gpio_free(rt5659->pdata.gpio_ldo);
+	}
+
+	if (gpio_is_valid(rt5659->pdata.gpio_reset)) {
+		gpio_direction_output(rt5659->pdata.gpio_reset, 0);
+		gpio_free(rt5659->pdata.gpio_reset);
+	}
+
 	snd_soc_unregister_codec(&i2c->dev);
 
 	return 0;
