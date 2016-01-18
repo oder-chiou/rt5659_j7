@@ -4683,6 +4683,14 @@ void rt5659_micbias_output(int micbias, int on)
 }
 EXPORT_SYMBOL(rt5659_micbias_output);
 
+void rt5659_stereo1_adc_mute(bool mute)
+{
+	regmap_update_bits(global_regmap, RT5659_STO1_ADC_DIG_VOL,
+		RT5659_L_MUTE | RT5659_R_MUTE,
+		mute ? (RT5659_L_MUTE | RT5659_R_MUTE) : 0);
+}
+EXPORT_SYMBOL(rt5659_stereo1_adc_mute);
+
 static int rt5659_reg_init(struct snd_soc_codec *codec)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
