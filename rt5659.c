@@ -1670,6 +1670,22 @@ static int rt5659_jack_type_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+static int rt5659_adc_power_delay_get(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	ucontrol->value.integer.value[0] = adc_power_delay;
+
+	return 0;
+}
+
+static int rt5659_adc_power_delay_put(struct snd_kcontrol *kcontrol,
+		struct snd_ctl_elem_value *ucontrol)
+{
+	adc_power_delay = ucontrol->value.integer.value[0];
+
+	return 0;
+}
+
 static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 	/* Speaker Output Volume */
 	SOC_DOUBLE_TLV("Speaker Playback Volume", RT5659_SPO_VOL,
@@ -1809,6 +1825,8 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 		rt5659_push_btn_get, rt5659_push_btn_put),
 	SOC_ENUM_EXT("jack type", rt5659_jack_type_enum,
 		rt5659_jack_type_get, rt5659_jack_type_put),
+	SOC_SINGLE_EXT("ADC Power On Delay", SND_SOC_NOPM, 0, 100, 0,
+		rt5659_adc_power_delay_get, rt5659_adc_power_delay_put),
 };
 
 /**
