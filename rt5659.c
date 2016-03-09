@@ -52,6 +52,7 @@ static struct reg_default init_list[] = {
 	{RT5659_IRQ_CTRL_1,		0x0008},
 	{RT5659_GPIO_CTRL_1,		0x8000}, /*set GPIO1 to IRQ*/
 	{RT5659_EJD_CTRL_1,		0x70c0},
+	{RT5659_GPIO_CTRL_2,		0x8000}, /*set GPIO to I2S3*/
 };
 #define RT5659_INIT_REG_LEN ARRAY_SIZE(init_list)
 
