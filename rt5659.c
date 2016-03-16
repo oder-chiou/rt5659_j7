@@ -53,6 +53,9 @@ static struct reg_default init_list[] = {
 	{RT5659_GPIO_CTRL_1,		0x8000}, /*set GPIO1 to IRQ*/
 	{RT5659_EJD_CTRL_1,		0x70c0},
 	{RT5659_GPIO_CTRL_2,		0x8000}, /*set GPIO to I2S3*/
+	/* Noise Gain Threshold */
+	{RT5659_STO_NG2_CTRL_2,		0x0041},
+	{RT5659_STO_NG2_CTRL_3,		0x040c},
 };
 #define RT5659_INIT_REG_LEN ARRAY_SIZE(init_list)
 
@@ -1505,6 +1508,10 @@ EXPORT_SYMBOL(rt5659_check_jd_status);
 static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 {
 	if (enable) {
+		if ((snd_soc_read(codec, RT5659_I2S1_SDP) & RT5659_I2S_DL_MASK)
+			== RT5659_I2S_DL_24)
+			snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1,
+				0x8000, 0x8000);
 		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1,
 			0x8000, 0x8000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x0001, 0x0000);
