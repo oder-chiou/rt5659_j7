@@ -44,6 +44,13 @@ module_param(adc_power_delay, int, 0644);
 #define VERSION "0.6 alsa 1.0.25"
 
 static struct reg_default init_list[] = {
+	{RT5659_BIAS_CUR_CTRL_8,	0xa502},
+	{RT5659_CHOP_DAC,		0x3030},
+	{RT5659_PRE_DIV_1,		0xef00},
+	{RT5659_PRE_DIV_2,		0xeffc},
+	{RT5659_MONO_GAIN,		0x0003},
+	{RT5659_CLASSD_0,		0x2021},
+	{RT5659_HP_CALIB_CTRL_7,	0x0000},
 	{RT5659_MONO_NG2_CTRL_2, 	0x003a},
 	{RT5659_ASRC_8, 		0x0120},
 	/* Jack detect (GPIO JD2 to IRQ) */
@@ -4761,6 +4768,8 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 		return ret;
 	}
 
+	schedule_delayed_work(&rt5659->calibrate_work, msecs_to_jiffies(100));
+
 	return 0;
 }
 
@@ -4897,6 +4906,7 @@ static const struct regmap_config rt5659_regmap = {
 	.cache_type = REGCACHE_RBTREE,
 	.reg_defaults = rt5659_reg,
 	.num_reg_defaults = ARRAY_SIZE(rt5659_reg),
+	.use_single_rw = true,
 };
 
 static const struct i2c_device_id rt5659_i2c_id[] = {
@@ -4941,6 +4951,9 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 void rt5659_calibrate(struct rt5659_priv *rt5659)
 {
 	int value, count;
+
+	regcache_cache_bypass(rt5659->regmap, true);
+	regmap_write(rt5659->regmap, RT5659_RESET, 0);
 
 	/* Calibrate HPO Start */
 	/* Fine tune HP Performance */
@@ -5134,6 +5147,14 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 	regmap_write(rt5659->regmap, RT5659_MICBIAS_2, 0x0080);
 	regmap_write(rt5659->regmap, RT5659_HP_VOL, 0x8080);
 	regmap_write(rt5659->regmap, RT5659_HP_CHARGE_PUMP_1, 0x0c16);
+
+	regmap_write(rt5659->regmap, RT5659_RESET, 0);
+	regcache_cache_bypass(rt5659->regmap, false);
+	regcache_mark_dirty(rt5659->regmap);
+	regcache_sync(rt5659->regmap);
+
+	/* Recovery the volatile values */
+	regmap_write(rt5659->regmap, RT5659_MONO_NG2_CTRL_5, 0x0009);
 }
 
 static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
@@ -5214,6 +5235,14 @@ static void rt5659_dac2r_depop_work(struct work_struct *work)
 	snd_soc_update_bits(codec, RT5659_MONO_DAC_MIXER,
 		RT5659_M_DAC_R2_MONO_L | RT5659_M_DAC_R2_MONO_R,
 		rt5659->dac2r_mono_dac_mixer);
+}
+
+static void rt5659_calibrate_handler(struct work_struct *work)
+{
+	struct rt5659_priv *rt5659 = container_of(work, struct rt5659_priv,
+		calibrate_work.work);
+
+	rt5659_calibrate(rt5659);
 }
 
 static int rt5659_i2c_probe(struct i2c_client *i2c,
@@ -5302,9 +5331,9 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
 
 	global_regmap = rt5659->regmap;
-
-	rt5659_calibrate(rt5659);
-
+/*
+ *	rt5659_calibrate(rt5659);
+*/
 	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d\n", __func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
 
@@ -5419,6 +5448,8 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	INIT_DELAYED_WORK(&rt5659->dac1_depop_work, rt5659_dac1_depop_work);
 	INIT_DELAYED_WORK(&rt5659->dac2l_depop_work, rt5659_dac2l_depop_work);
 	INIT_DELAYED_WORK(&rt5659->dac2r_depop_work, rt5659_dac2r_depop_work);
+	INIT_DELAYED_WORK(&rt5659->calibrate_work,
+		rt5659_calibrate_handler);
 
 	return snd_soc_register_codec(&i2c->dev, &soc_codec_dev_rt5659,
 			rt5659_dai, ARRAY_SIZE(rt5659_dai));
