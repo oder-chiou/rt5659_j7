@@ -1512,8 +1512,6 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 			== RT5659_I2S_DL_24)
 			snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1,
 				0x8000, 0x8000);
-		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1,
-			0x8000, 0x8000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x0001, 0x0000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0xfe01, 0x8801);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080,
