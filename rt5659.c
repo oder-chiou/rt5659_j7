@@ -22,6 +22,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
+#include <linux/mutex.h>
 #include <sound/core.h>
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
@@ -35,6 +36,7 @@
 #include "rt5659.h"
 
 static struct regmap *global_regmap;
+static struct rt5659_priv *global_rt5659;
 /* Delay(ms) after powering on DMIC for avoiding pop */
 static int dmic_power_delay = 450;
 module_param(dmic_power_delay, int, 0644);
@@ -4684,6 +4686,8 @@ void rt5659_micbias_output(int micbias, int on)
 {
 	unsigned int value;
 
+	mutex_lock(&global_rt5659->calibrate_mutex);
+
 	if (on) {
 		regmap_update_bits(global_regmap, RT5659_PWR_ANLG_1,
 			RT5659_PWR_MB | RT5659_PWR_VREF1 | RT5659_PWR_VREF2,
@@ -4720,6 +4724,8 @@ void rt5659_micbias_output(int micbias, int on)
 				RT5659_PWR_FV2, 0);
 		}
 	}
+
+	mutex_unlock(&global_rt5659->calibrate_mutex);
 }
 EXPORT_SYMBOL(rt5659_micbias_output);
 
@@ -4952,6 +4958,8 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 {
 	int value, count;
 
+	mutex_lock(&rt5659->calibrate_mutex);
+
 	regcache_cache_bypass(rt5659->regmap, true);
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
 
@@ -5155,6 +5163,8 @@ void rt5659_calibrate(struct rt5659_priv *rt5659)
 
 	/* Recovery the volatile values */
 	regmap_write(rt5659->regmap, RT5659_MONO_NG2_CTRL_5, 0x0009);
+
+	mutex_unlock(&rt5659->calibrate_mutex);
 }
 
 static void rt5659_i2s_switch_slave_work_0(struct work_struct *work)
@@ -5264,6 +5274,7 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 
 	rt5659->i2c = i2c;
 	i2c_set_clientdata(i2c, rt5659);
+	global_rt5659 = rt5659;
 
 	if (pdata) {
 		rt5659->pdata = *pdata;
@@ -5438,6 +5449,8 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 			RT5659_DMIC_1_DP_MASK | RT5659_DMIC_2_DP_MASK,
 			RT5659_DMIC_1_DP_IN2N | RT5659_DMIC_2_DP_IN2P);
 	}
+
+	mutex_init(&rt5659->calibrate_mutex);
 
 	INIT_DELAYED_WORK(&rt5659->i2s_switch_slave_work[RT5659_AIF1],
 		rt5659_i2s_switch_slave_work_0);
