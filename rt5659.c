@@ -1521,12 +1521,11 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 			== RT5659_I2S_DL_24)
 			snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1,
 				0x8000, 0x8000);
-		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x0001, 0x0000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0xfe01, 0x8801);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080,
 			0x0080);
 	} else {
-		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1, 0x8000,
+		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1, 0x8001,
 			0x0000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x8000, 0x0000);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080, 0x0000);
@@ -2848,12 +2847,16 @@ static int rt5659_hp_event(struct snd_soc_dapm_widget *w,
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
+		snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100, 0x0100);
+		snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x3000);
 		snd_soc_write(codec,RT5659_HP_CHARGE_PUMP_1, 0x0e1e);
 		snd_soc_update_bits(codec, RT5659_DEPOP_1, 0x0010, 0x0010);
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
 		snd_soc_write(codec, RT5659_DEPOP_1, 0x0000);
+		snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
+		snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100, 0x0000);
 		break;
 
 	default:
