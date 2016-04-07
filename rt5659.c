@@ -1304,7 +1304,7 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 					RT5659_ASRC_1, u_bit, u_bit);
 			break;
 		default: /*disable*/
-			ret = snd_soc_put_value_enum_double(kcontrol, ucontrol);
+			ret = snd_soc_put_enum_double(kcontrol, ucontrol);
 
 			asrc2 = snd_soc_read(codec, RT5659_ASRC_2);
 			asrc3 = snd_soc_read(codec, RT5659_ASRC_3);
@@ -1363,7 +1363,7 @@ static int rt5659_clk_sel_put(struct snd_kcontrol *kcontrol,
 		}
 	}
 
-	return snd_soc_put_value_enum_double(kcontrol, ucontrol);
+	return snd_soc_put_enum_double(kcontrol, ucontrol);
 }
 
 static int rt5659_hp_vol_put(struct snd_kcontrol *kcontrol,
@@ -1820,19 +1820,19 @@ static const struct snd_kcontrol_new rt5659_snd_controls[] = {
 	SOC_ENUM("DAC IF3 Data Switch", rt5659_if3_dac_enum),
 
 	SOC_ENUM_EXT("DA STO Clk Sel", rt5659_da_sto_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("DA MONOL Clk Sel", rt5659_da_monol_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("DA MONOR Clk Sel", rt5659_da_monor_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("AD STO1 Clk Sel", rt5659_ad_sto1_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("AD STO2 Clk Sel", rt5659_ad_sto2_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("AD MONOL Clk Sel", rt5659_ad_monol_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("AD MONOR Clk Sel", rt5659_ad_monor_asrc_enum,
-		snd_soc_get_value_enum_double, rt5659_clk_sel_put),
+		snd_soc_get_enum_double, rt5659_clk_sel_put),
 	SOC_ENUM_EXT("push button", rt5659_push_btn_enum,
 		rt5659_push_btn_get, rt5659_push_btn_put),
 	SOC_ENUM_EXT("jack type", rt5659_jack_type_enum,
