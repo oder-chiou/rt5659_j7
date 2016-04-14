@@ -1788,7 +1788,6 @@ struct rt5659_priv {
 	int dsp_rate;
 	int jack_type;
 	int dmic_en;
-	bool do_impedance_sensing;
 	bool dac1_en, dac2_en;
 	unsigned int impedance_value;
 	unsigned int dac1_sto_dac_mixer, dac1_mono_dac_mixer;
@@ -1807,5 +1806,6 @@ int rt5659_check_jd_status(struct snd_soc_codec *codec);
 
 void rt5659_micbias_output(int micbias, int on);
 void rt5659_stereo1_adc_mute(bool mute);
+unsigned int rt5659_imp_detect(struct snd_soc_codec *codec);
 
 #endif /* __RT5659_H__ */
