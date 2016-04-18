@@ -1544,6 +1544,12 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 	}
 }
 
+void rt5659_imp_detect_jd_unplug()
+{
+	global_rt5659->impedance_sensing_jd_unplug = true;
+}
+EXPORT_SYMBOL(rt5659_imp_detect_jd_unplug);
+
 unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 {
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
@@ -1555,6 +1561,7 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	mutex_lock(&rt5659->calibrate_mutex);
 
 	rt5659->impedance_value = 0x3ff;
+	rt5659->impedance_sensing_jd_unplug = false;
 
 	/* Read current settings */
 	reg29 = snd_soc_read(codec, RT5659_AD_DA_MIXER);
@@ -1611,7 +1618,13 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	snd_soc_write(codec, RT5659_HP_IMP_SENS_CTRL_1, 0x004d);
 	snd_soc_write(codec, RT5659_HP_CALIB_CTRL_7, 0x0000);
 	snd_soc_write(codec, RT5659_IRQ_CTRL_3, 0x0004);
-	msleep(100);
+
+	for (j = 0; j < 10; j++) {
+		msleep(10);
+
+		if (rt5659->impedance_sensing_jd_unplug == true)
+			goto imp_break;
+	}
 
 	for (j = 0; j < 5; j++) {
 		snd_soc_write(codec, RT5659_HP_IMP_SENS_CTRL_1, 0x804d);
@@ -1624,10 +1637,9 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 					snd_soc_read(codec, RT5659_HP_IMP_SENS_CTRL_3) & 0x3ff;
 				break;
 			}
-/*
-			if (JD == 0)
+
+			if (rt5659->impedance_sensing_jd_unplug == true)
 				break;
-*/
 		}
 
 		snd_soc_write(codec, RT5659_INT_ST_1, 0x0);
@@ -1635,11 +1647,12 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 
 		if (rt5659->impedance_value != 0x3ff)
 			break;
-/*
-		if (JD == 0)
+
+		if (rt5659->impedance_sensing_jd_unplug == true)
 			break;
-*/
 	}
+
+imp_break:
 
 	/* Recovery to currect settings */
 	snd_soc_write(codec, RT5659_STO_NG2_CTRL_1, 0x8ec0);
