@@ -1522,9 +1522,18 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0xfe01, 0x8801);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080,
 			0x0080);
+
+		if (snd_soc_read(codec, RT5659_DEPOP_1) & 0x0010) {
+			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
+				0x0100);
+			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000,
+				0x3000);
+		}
 	} else {
 		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1, 0x8000,
 			0x0000);
+		snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000, 0x0);
+		snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100, 0x0000);
 		snd_soc_update_bits(codec, RT5659_SILENCE_CTRL, 0x8001, 0x0000);
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x0080, 0x0000);
 	}
@@ -2846,7 +2855,7 @@ static int rt5659_hp_event(struct snd_soc_dapm_widget *w,
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
-		if (rt5659->lrck[RT5659_AIF1] == 192000) {
+		if (!rt5659->dac2_en) {
 			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
 				0x0100);
 			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000,
