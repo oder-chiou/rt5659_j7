@@ -1516,6 +1516,8 @@ EXPORT_SYMBOL(rt5659_check_jd_status);
 
 static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 {
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+
 	if (enable) {
 		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1, 0x8000,
 			0x8000);
@@ -1524,10 +1526,12 @@ static void rt5659_noise_gate(struct snd_soc_codec *codec, bool enable)
 			0x0080);
 
 		if (snd_soc_read(codec, RT5659_DEPOP_1) & 0x0010) {
-			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
-				0x0100);
-			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000,
-				0x3000);
+			if (rt5659->pdata.noise_gate1_hp_enabled) {
+				snd_soc_update_bits(codec, RT5659_MICBIAS_2,
+					0x0100, 0x0100);
+				snd_soc_update_bits(codec, RT5659_DUMMY_2,
+					0x3000, 0x3000);
+			}
 		}
 	} else {
 		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1, 0x8000,
@@ -2856,10 +2860,13 @@ static int rt5659_hp_event(struct snd_soc_dapm_widget *w,
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
 		if (!rt5659->dac2_en) {
-			snd_soc_update_bits(codec, RT5659_MICBIAS_2, 0x0100,
-				0x0100);
-			snd_soc_update_bits(codec, RT5659_DUMMY_2, 0x3000,
-				0x3000);
+			if (rt5659->pdata.noise_gate1_hp_enabled ||
+				rt5659->lrck[RT5659_AIF1] == 192000) {
+				snd_soc_update_bits(codec, RT5659_MICBIAS_2,
+					0x0100, 0x0100);
+				snd_soc_update_bits(codec, RT5659_DUMMY_2,
+					0x3000, 0x3000);
+			}
 		}
 		snd_soc_write(codec,RT5659_HP_CHARGE_PUMP_1, 0x0e1e);
 		snd_soc_update_bits(codec, RT5659_DEPOP_1, 0x0010, 0x0010);
@@ -4973,6 +4980,9 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 	rt5659->pdata.gpio_ldo = of_get_named_gpio(np, "realtek,gpio_ldo", 0);
 	rt5659->pdata.gpio_reset = of_get_named_gpio(np, "realtek,gpio_reset",
 		0);
+
+	rt5659->pdata.noise_gate1_hp_enabled = of_property_read_bool(np,
+					"realtek,noise-gate1-hp-enabled");
 
 	return 0;
 }

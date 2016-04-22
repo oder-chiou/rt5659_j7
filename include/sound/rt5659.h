@@ -41,6 +41,8 @@ struct rt5659_platform_data {
 
 	int gpio_ldo;
 	int gpio_reset;
+
+	bool noise_gate1_hp_enabled;
 };
 
 #endif
