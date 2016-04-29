@@ -53,7 +53,8 @@ static struct reg_default init_list[] = {
 	{RT5659_MONO_GAIN,		0x0003},
 	{RT5659_CLASSD_0,		0x2021},
 	{RT5659_HP_CALIB_CTRL_7,	0x0000},
-	{RT5659_MONO_NG2_CTRL_2, 	0x003a},
+	{RT5659_MONOMIX_IN_GAIN,	0x021f},
+	{RT5659_MONO_NG2_CTRL_2,	0x003a},
 	{RT5659_ASRC_8, 		0x0120},
 	/* Jack detect (GPIO JD2 to IRQ) */
 	{RT5659_RC_CLK_CTRL,		0x0100},
