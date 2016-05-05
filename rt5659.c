@@ -1373,7 +1373,12 @@ static int rt5659_hp_vol_put(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *component = snd_kcontrol_chip(kcontrol);
 	struct snd_soc_codec *codec = snd_soc_component_to_codec(component);
-	int ret = snd_soc_put_volsw(kcontrol, ucontrol);
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
+	int ret;
+
+	mutex_lock(&rt5659->calibrate_mutex);
+
+	ret = snd_soc_put_volsw(kcontrol, ucontrol);
 
 	if (snd_soc_read(codec, RT5659_STO_NG2_CTRL_1) & 0x8000) {
 		snd_soc_update_bits(codec, RT5659_STO_NG2_CTRL_1, 0x8000,
@@ -1382,6 +1387,7 @@ static int rt5659_hp_vol_put(struct snd_kcontrol *kcontrol,
 			0x8000);
 	}
 
+	mutex_unlock(&rt5659->calibrate_mutex);
 	return ret;
 }
 
@@ -4135,6 +4141,7 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 	unsigned int val_len = 0, val_clk, mask_clk;
 	int pre_div, bclk_ms, frame_size;
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s\n", __func__);
 
 	rt5659->lrck[dai->id] = params_rate(params);
@@ -4142,11 +4149,13 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 	if (pre_div < 0) {
 		dev_err(codec->dev, "Unsupported clock setting %d for DAI %d\n",
 			rt5659->lrck[dai->id], dai->id);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 	frame_size = snd_soc_params_to_frame_size(params);
 	if (frame_size < 0) {
 		dev_err(codec->dev, "Unsupported frame size: %d\n", frame_size);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
@@ -4172,6 +4181,7 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 		val_len |= RT5659_I2S_DL_8;
 		break;
 	default:
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
@@ -4198,6 +4208,7 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 		break;
 	default:
 		dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
@@ -4235,6 +4246,7 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 		break;
 	}
 
+	mutex_unlock(&rt5659->calibrate_mutex);
 	return 0;
 }
 
@@ -4244,6 +4256,7 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg_val = 0;
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s\n", __func__);
 
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
@@ -4254,6 +4267,7 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		rt5659->master[dai->id] = 0;
 		break;
 	default:
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
@@ -4264,6 +4278,7 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		reg_val |= RT5659_I2S_BP_INV;
 		break;
 	default:
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
@@ -4280,6 +4295,7 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		reg_val |= RT5659_I2S_DF_PCM_B;
 		break;
 	default:
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
@@ -4298,8 +4314,11 @@ static int rt5659_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		break;
 	default:
 		dev_err(codec->dev, "Invalid dai->id: %d\n", dai->id);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
+
+	mutex_unlock(&rt5659->calibrate_mutex);
 	return 0;
 }
 
@@ -4310,10 +4329,13 @@ static int rt5659_set_dai_sysclk(struct snd_soc_dai *dai,
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg_val = 0;
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s\n", __func__);
 
-	if (freq == rt5659->sysclk && clk_id == rt5659->sysclk_src)
+	if (freq == rt5659->sysclk && clk_id == rt5659->sysclk_src) {
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 0;
+	}
 
 	switch (clk_id) {
 	case RT5659_SCLK_S_MCLK:
@@ -4327,6 +4349,7 @@ static int rt5659_set_dai_sysclk(struct snd_soc_dai *dai,
 		break;
 	default:
 		dev_err(codec->dev, "Invalid clock id (%d)\n", clk_id);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 	snd_soc_update_bits(codec, RT5659_GLB_CLK,
@@ -4336,6 +4359,7 @@ static int rt5659_set_dai_sysclk(struct snd_soc_dai *dai,
 
 	dev_dbg(dai->dev, "Sysclk is %dHz and clock id is %d\n", freq, clk_id);
 
+	mutex_unlock(&rt5659->calibrate_mutex);
 	return 0;
 }
 
@@ -4420,11 +4444,14 @@ static int rt5659_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int Source,
 	struct rt5659_pll_code pll_code;
 	int ret;
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s\n", __func__);
 
 	if (Source == rt5659->pll_src && freq_in == rt5659->pll_in &&
-	    freq_out == rt5659->pll_out)
+	    freq_out == rt5659->pll_out) {
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 0;
+	}
 
 	if (!freq_in || !freq_out) {
 		dev_dbg(codec->dev, "PLL disabled\n");
@@ -4433,6 +4460,7 @@ static int rt5659_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int Source,
 		rt5659->pll_out = 0;
 		snd_soc_update_bits(codec, RT5659_GLB_CLK,
 			RT5659_SCLK_SRC_MASK, RT5659_SCLK_SRC_MCLK);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 0;
 	}
 
@@ -4455,12 +4483,14 @@ static int rt5659_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int Source,
 		break;
 	default:
 		dev_err(codec->dev, "Unknown PLL Source %d\n", Source);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return -EINVAL;
 	}
 
 	ret = rt5659_pll_calc(freq_in, freq_out, &pll_code);
 	if (ret < 0) {
 		dev_err(codec->dev, "Unsupport input clock %d\n", freq_in);
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return ret;
 	}
 
@@ -4479,6 +4509,7 @@ static int rt5659_set_dai_pll(struct snd_soc_dai *dai, int pll_id, int Source,
 	rt5659->pll_out = freq_out;
 	rt5659->pll_src = Source;
 
+	mutex_unlock(&rt5659->calibrate_mutex);
 	return 0;
 }
 
@@ -4716,6 +4747,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	unsigned int value;
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s: level = %d\n", __func__, level);
 
 	switch (level) {
@@ -4755,6 +4787,7 @@ static int rt5659_set_bias_level(struct snd_soc_codec *codec,
 	}
 	codec->dapm.bias_level = level;
 
+	mutex_unlock(&rt5659->calibrate_mutex);
 	return 0;
 }
 
