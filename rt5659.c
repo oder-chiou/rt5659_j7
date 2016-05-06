@@ -1688,8 +1688,6 @@ imp_break:
 	snd_soc_write(codec, RT5659_ASRC_2, reg84);
 	snd_soc_write(codec, RT5659_STO_DAC_MIXER, reg2a);
 	snd_soc_write(codec, RT5659_AD_DA_MIXER, reg29);
-	snd_soc_write(codec, RT5659_STO1_ADC_DIG_VOL, reg1c);
-	snd_soc_update_bits(codec, RT5659_PWR_ANLG_1, RT5659_PWR_MA, reg63);
 
 	mutex_unlock(&rt5659->calibrate_mutex);
 
@@ -2003,15 +2001,20 @@ static int is_sys_clk_from_pll(struct snd_soc_dapm_widget *w,
 {
 	unsigned int val;
 	struct snd_soc_codec *codec = w->codec;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s\n", __func__);
 
 	val = snd_soc_read(codec, RT5659_GLB_CLK);
 	val &= RT5659_SCLK_SRC_MASK;
-	if (val == RT5659_SCLK_SRC_PLL1)
+	if (val == RT5659_SCLK_SRC_PLL1) {
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 1;
-	else
+	} else {
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 0;
+	}
 }
 
 static int is_using_asrc(struct snd_soc_dapm_widget *w,
@@ -2019,7 +2022,9 @@ static int is_using_asrc(struct snd_soc_dapm_widget *w,
 {
 	unsigned int reg, shift, val;
 	struct snd_soc_codec *codec = w->codec;
+	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 
+	mutex_lock(&rt5659->calibrate_mutex);
 	pr_debug("%s\n", __func__);
 
 	switch (w->shift) {
@@ -2048,6 +2053,7 @@ static int is_using_asrc(struct snd_soc_dapm_widget *w,
 		shift = RT5659_DA_STO_T_SFT;
 		break;
 	default:
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 0;
 	}
 
@@ -2062,8 +2068,10 @@ static int is_using_asrc(struct snd_soc_dapm_widget *w,
 		/* Prevent I2S ASRC disable for special case */
 		snd_soc_update_bits(codec, RT5659_ASRC_1, 1 << (10 + val),
 			1 << (10 + val));
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 1;
 	default:
+		mutex_unlock(&rt5659->calibrate_mutex);
 		return 0;
 	}
 
