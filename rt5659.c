@@ -4589,11 +4589,14 @@ static ssize_t rt5659_codec_show(struct device *dev,
 	for (i = 0; i <= RT5659_ADC_R_EQ_POST_VOL; i++) {
 		if (cnt + RT5659_REG_DISP_LEN >= PAGE_SIZE)
 			break;
-		val = snd_soc_read(codec, i);
-		if (!val)
-			continue;
-		cnt += snprintf(buf + cnt, RT5659_REG_DISP_LEN,
-				 "%04x: %04x\n", i, val);
+
+		if (rt5659_readable_register(NULL, i)) {
+			val = snd_soc_read(codec, i);
+			if (!val)
+				continue;
+			cnt += snprintf(buf + cnt, RT5659_REG_DISP_LEN,
+					 "%04x: %04x\n", i, val);
+		}
 	}
 
 	if (cnt >= PAGE_SIZE)
