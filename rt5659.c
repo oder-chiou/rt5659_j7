@@ -5378,6 +5378,11 @@ static void rt5659_calibrate_handler(struct work_struct *work)
 	struct rt5659_priv *rt5659 = container_of(work, struct rt5659_priv,
 		calibrate_work.work);
 
+	while(!rt5659->codec->card->instantiated) {
+		pr_debug("%s\n", __func__);
+		msleep(10);
+	}
+
 	rt5659_calibrate(rt5659);
 }
 
