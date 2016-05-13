@@ -1566,6 +1566,8 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	unsigned int reg84, reg1c;
 	unsigned int i, j;
 
+	mutex_lock(&rt5659->codec->mutex);
+	mutex_lock(&rt5659->codec->card->dapm_mutex);
 	mutex_lock(&rt5659->calibrate_mutex);
 
 	rt5659->impedance_value = 0x3ff;
@@ -1690,6 +1692,8 @@ imp_break:
 	snd_soc_write(codec, RT5659_AD_DA_MIXER, reg29);
 
 	mutex_unlock(&rt5659->calibrate_mutex);
+	mutex_unlock(&rt5659->codec->card->dapm_mutex);
+	mutex_unlock(&rt5659->codec->mutex);
 
 	return rt5659->impedance_value;
 }
