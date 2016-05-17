@@ -1567,7 +1567,7 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	unsigned int i, j;
 
 	mutex_lock(&rt5659->codec->mutex);
-	mutex_lock(&rt5659->codec->card->dapm_mutex);
+	mutex_lock(&rt5659->codec->component.card->dapm_mutex);
 	mutex_lock(&rt5659->calibrate_mutex);
 
 	rt5659->impedance_value = 0x3ff;
@@ -1692,7 +1692,7 @@ imp_break:
 	snd_soc_write(codec, RT5659_AD_DA_MIXER, reg29);
 
 	mutex_unlock(&rt5659->calibrate_mutex);
-	mutex_unlock(&rt5659->codec->card->dapm_mutex);
+	mutex_unlock(&rt5659->codec->component.card->dapm_mutex);
 	mutex_unlock(&rt5659->codec->mutex);
 
 	return rt5659->impedance_value;
@@ -5382,7 +5382,7 @@ static void rt5659_calibrate_handler(struct work_struct *work)
 	struct rt5659_priv *rt5659 = container_of(work, struct rt5659_priv,
 		calibrate_work.work);
 
-	while(!rt5659->codec->card->instantiated) {
+	while(!rt5659->codec->component.card->instantiated) {
 		pr_debug("%s\n", __func__);
 		msleep(10);
 	}
