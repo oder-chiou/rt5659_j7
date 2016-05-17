@@ -1688,6 +1688,8 @@ imp_break:
 	snd_soc_write(codec, RT5659_ASRC_2, reg84);
 	snd_soc_write(codec, RT5659_STO_DAC_MIXER, reg2a);
 	snd_soc_write(codec, RT5659_AD_DA_MIXER, reg29);
+	snd_soc_write(codec, RT5659_STO1_ADC_DIG_VOL, reg1c);
+	snd_soc_update_bits(codec, RT5659_PWR_ANLG_1, RT5659_PWR_MA, reg63);
 
 	mutex_unlock(&rt5659->calibrate_mutex);
 	mutex_unlock(&rt5659->codec->card->dapm_mutex);
