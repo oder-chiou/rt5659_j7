@@ -1563,7 +1563,7 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	unsigned int reg05, reg06, reg02, reg91, reg61, reg62, reg63, reg65;
 	unsigned int reg73, reg8e, regfa, reg80, reg81, reg82, reg2a, reg29;
-	unsigned int reg84, reg1c;
+	unsigned int reg83, reg84, reg1c;
 	unsigned int i, j;
 
 	mutex_lock(&rt5659->codec->mutex);
@@ -1576,6 +1576,7 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	/* Read current settings */
 	reg29 = snd_soc_read(codec, RT5659_AD_DA_MIXER);
 	reg2a = snd_soc_read(codec, RT5659_STO_DAC_MIXER);
+	reg83 = snd_soc_read(codec, RT5659_ASRC_1);
 	reg84 = snd_soc_read(codec, RT5659_ASRC_2);
 	reg05 = snd_soc_read(codec, RT5659_HPL_GAIN);
 	reg06 = snd_soc_read(codec, RT5659_HPR_GAIN);
@@ -1599,6 +1600,7 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 		RT5659_L_MUTE | RT5659_R_MUTE, RT5659_L_MUTE | RT5659_R_MUTE);
 	snd_soc_write(codec, RT5659_AD_DA_MIXER, 0xc0c0);
 	snd_soc_write(codec, RT5659_STO_DAC_MIXER, 0x2aaa);
+	snd_soc_write(codec, RT5659_ASRC_1, 0);
 	snd_soc_write(codec, RT5659_ASRC_2, 0);
 	snd_soc_write(codec, RT5659_HP_LOGIC_CTRL_1, 0x2700);
 	snd_soc_write(codec, RT5659_HP_LOGIC_CTRL_2, 0x0001);
@@ -1688,6 +1690,7 @@ imp_break:
 	snd_soc_write(codec, RT5659_HP_LOGIC_CTRL_1, 0x0000);
 	snd_soc_write(codec, RT5659_HP_LOGIC_CTRL_2, 0x0000);
 	snd_soc_write(codec, RT5659_ASRC_2, reg84);
+	snd_soc_write(codec, RT5659_ASRC_1, reg83);
 	snd_soc_write(codec, RT5659_STO_DAC_MIXER, reg2a);
 	snd_soc_write(codec, RT5659_AD_DA_MIXER, reg29);
 	snd_soc_write(codec, RT5659_STO1_ADC_DIG_VOL, reg1c);
