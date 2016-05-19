@@ -1604,7 +1604,6 @@ unsigned int rt5659_imp_detect(struct snd_soc_codec *codec)
 	snd_soc_write(codec, RT5659_HP_LOGIC_CTRL_2, 0x0001);
 	snd_soc_write(codec, RT5659_DEPOP_1, 0);
 	snd_soc_update_bits(codec, RT5659_PWR_DIG_1, 0x0c80, 0);
-	snd_soc_update_bits(codec, RT5659_PWR_ANLG_1, 0xf200, 0);
 	snd_soc_write(codec, RT5659_GLB_CLK, 0x6000);
 	snd_soc_write(codec, RT5659_PLL_CTRL_1, 0x0f00);
 	snd_soc_write(codec, RT5659_PLL_CTRL_2, 0x5000);
