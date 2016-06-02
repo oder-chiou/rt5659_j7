@@ -4880,6 +4880,9 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 	pr_debug("%s\n", __func__);
 
 	rt5659->codec = codec;
+	codec->control_data = rt5659->regmap;
+
+	snd_soc_codec_set_cache_io(codec, 16, 16, SND_SOC_REGMAP);
 
 	rt5659_reg_init(codec);
 	rt5659_set_bias_level(codec, SND_SOC_BIAS_OFF);
