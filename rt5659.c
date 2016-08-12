@@ -55,7 +55,7 @@ static struct reg_default init_list[] = {
 	{RT5659_HP_CALIB_CTRL_7,	0x0000},
 	{RT5659_MONOMIX_IN_GAIN,	0x021f},
 	{RT5659_MONO_NG2_CTRL_2,	0x003a},
-	{RT5659_ASRC_8, 		0x0120},
+	{RT5659_ASRC_8,			0x0120},
 	/* Jack detect (GPIO JD2 to IRQ) */
 	{RT5659_RC_CLK_CTRL,		0x0100},
 	{RT5659_JD_CTRL_2,		0x0600},
@@ -3656,7 +3656,7 @@ static const struct snd_soc_dapm_widget rt5659_dapm_widgets[] = {
 	SND_SOC_DAPM_MIXER("OUT MIXR", RT5659_PWR_MIXER, RT5659_PWR_OM_R_BIT,
 		0, rt5659_out_r_mix, ARRAY_SIZE(rt5659_out_r_mix)),
 
-	/* Ouput Volume */
+	/* Output Volume */
 	SND_SOC_DAPM_SWITCH("SPKVOL L", RT5659_PWR_VOL, RT5659_PWR_SV_L_BIT, 0,
 		&spkvol_l_switch),
 	SND_SOC_DAPM_SWITCH("SPKVOL R", RT5659_PWR_VOL, RT5659_PWR_SV_R_BIT, 0,
@@ -4252,7 +4252,7 @@ static int rt5659_hw_params(struct snd_pcm_substream *substream,
 				0);
 		break;
 	case 96000:
-		snd_soc_update_bits(codec, RT5659_ADDA_CLK_1, 
+		snd_soc_update_bits(codec, RT5659_ADDA_CLK_1,
 			RT5659_DAC_OSR_MASK | RT5659_ADC_OSR_MASK,
 			RT5659_DAC_OSR_64 | RT5659_ADC_OSR_64);
 		if (dai->id == RT5659_AIF1)
