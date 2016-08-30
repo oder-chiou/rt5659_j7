@@ -2882,14 +2882,14 @@ static int rt5659_spk_event(struct snd_soc_dapm_widget *w,
 		snd_soc_update_bits(codec, RT5659_DIG_MISC, 0x8000, 0x8000);
 		snd_soc_update_bits(codec, RT5659_CLASSD_CTRL_1, 0x0200,
 			0x0200);
-		snd_soc_update_bits(codec, RT5659_CLASSD_2, 0x0400, 0x0400);
+		snd_soc_update_bits(codec, RT5659_CLASSD_2, 0x0404, 0x0404);
 		snd_soc_write(codec, RT5659_CLASSD_1, 0x0803);
 		snd_soc_write(codec, RT5659_SPK_DC_CAILB_CTRL_3, 0x0000);
 		break;
 
 	case SND_SOC_DAPM_POST_PMD:
 		snd_soc_write(codec, RT5659_CLASSD_1, 0x0011);
-		snd_soc_update_bits(codec, RT5659_CLASSD_2, 0x0400, 0x0000);
+		snd_soc_update_bits(codec, RT5659_CLASSD_2, 0x0404, 0x0000);
 		snd_soc_write(codec, RT5659_SPK_DC_CAILB_CTRL_3, 0x0003);
 		snd_soc_update_bits(codec, RT5659_CLASSD_CTRL_1, 0x0200,
 			0x0000);
