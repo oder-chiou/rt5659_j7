@@ -27,6 +27,13 @@ enum rt5659_dmic2_data_pin {
 	RT5659_DMIC2_DATA_GPIO12,
 };
 
+enum rt5659_micbias1_voltage {
+	RT5659_MICBIAS1_2V7,
+	RT5659_MICBIAS1_2V4,
+	RT5659_MICBIAS1_2V25,
+	RT5659_MICBIAS1_1V8,
+};
+
 struct rt5659_platform_data {
 	bool in1_diff;
 	bool in3_diff;
@@ -43,6 +50,7 @@ struct rt5659_platform_data {
 	int gpio_reset;
 
 	bool noise_gate1_hp_enabled;
+	enum rt5659_micbias1_voltage micbias1_voltage;
 };
 
 #endif

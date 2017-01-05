@@ -5119,6 +5119,8 @@ static int rt5659_parse_dt(struct rt5659_priv *rt5659, struct device_node *np)
 
 	rt5659->pdata.noise_gate1_hp_enabled = of_property_read_bool(np,
 					"realtek,noise-gate1-hp-enabled");
+	of_property_read_u32(np, "realtek,micbias1-voltage",
+		&rt5659->pdata.micbias1_voltage);
 
 	return 0;
 }
@@ -5638,6 +5640,10 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 			RT5659_DMIC_1_DP_MASK | RT5659_DMIC_2_DP_MASK,
 			RT5659_DMIC_1_DP_IN2N | RT5659_DMIC_2_DP_IN2P);
 	}
+
+	if (rt5659->pdata.micbias1_voltage)
+		regmap_update_bits(rt5659->regmap, RT5659_MICBIAS_1,
+			0xc000, rt5659->pdata.micbias1_voltage << 14);
 
 	mutex_init(&rt5659->calibrate_mutex);
 
