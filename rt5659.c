@@ -4903,9 +4903,8 @@ void rt5659_stereo1_adc_mute(bool mute)
 }
 EXPORT_SYMBOL(rt5659_stereo1_adc_mute);
 
-static int rt5659_reg_init(struct snd_soc_codec *codec)
+static int rt5659_reg_init(struct rt5659_priv *rt5659)
 {
-	struct rt5659_priv *rt5659 = snd_soc_codec_get_drvdata(codec);
 	int i;
 
 	for (i = 0; i < RT5659_INIT_REG_LEN; i++)
@@ -4923,7 +4922,6 @@ static int rt5659_probe(struct snd_soc_codec *codec)
 
 	rt5659->codec = codec;
 
-	rt5659_reg_init(codec);
 	rt5659_set_bias_level(codec, SND_SOC_BIAS_OFF);
 
 	ret = device_create_file(codec->dev, &dev_attr_codec_reg);
@@ -5533,9 +5531,9 @@ static int rt5659_i2c_probe(struct i2c_client *i2c,
 	regmap_write(rt5659->regmap, RT5659_RESET, 0);
 
 	global_regmap = rt5659->regmap;
-/*
- *	rt5659_calibrate(rt5659);
-*/
+
+	rt5659_reg_init(rt5659);
+
 	pr_debug("%s: dmic1_data_pin = %d, dmic2_data_pin =%d\n", __func__,
 		rt5659->pdata.dmic1_data_pin, rt5659->pdata.dmic2_data_pin);
 
